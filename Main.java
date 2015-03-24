@@ -51,7 +51,7 @@ public class Main {
                             //will eventually implement a select dialog
         
         if (hardSwitch == 0){
-            chordPlayer player = new chordPlayer();
+            ChordPlayer player = new ChordPlayer();
         }else if(hardSwitch == 1){
   
             optionPane optPane = new optionPane();
@@ -290,12 +290,12 @@ private static class optionPane extends JPanel{
     }
 }
 
-private static class chordPlayer extends JFrame implements ActionListener, MouseListener {
+private static class ChordPlayer extends JFrame implements ActionListener, MouseListener {
 
     JFrame f = new JFrame("Chord Player");
 
 
-    public chordPlayer(){ //if a==0, interval
+    public ChordPlayer(){ //if a==0, interval
                             //if a==1, harmonic interval
                             //if a==2, chords
 
