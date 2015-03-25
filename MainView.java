@@ -29,11 +29,14 @@ public class MainView extends JFrame implements ActionListener, MouseListener {
     int id; // identifier for mode
     int root;
     String currentInterval, currentTriad;
+    private JPanel buttons;
+    boolean isInterval;
     
     public MainView(int a){ //if a==0, interval
                             //if a==1, harmonic interval
                             //if a==2, chords
         id = a;
+        isInterval = a==0||a==1;
         
         //main frame
         f.setLocation(10, 50);
@@ -59,31 +62,23 @@ public class MainView extends JFrame implements ActionListener, MouseListener {
         playButton.add(quit);
         f.add(playButton, BorderLayout.SOUTH);
 
-        JPanel buttons = new JPanel();
+        buttons = new JPanel();
         GridLayout grid = new GridLayout(0,4);
         buttons.setLayout(grid);
         f.add(buttons, BorderLayout.CENTER);
 
         String[] tones = {"A", "B", "C", "D", "E", "F", "G"};
 
-        if(a==0||a==1){ //interval, harmonic or otherwise
+        if(isInterval){ 
             for(String i : IntervalUtilities.intervals){
-                JButton jbAdvance = new JButton(i);
-                jbAdvance.addActionListener(this);
-                buttons.add(jbAdvance);                
+                addButton(i);
             }
-            root = IntervalUtilities.randomRoot();
-            currentInterval = IntervalUtilities.randomInterval();
-            IntervalUtilities.playInterval(root, currentInterval, id);
+            selectNewRootAndIntervalThenPlay();
         }else{ //triad
             for(String i : IntervalUtilities.triads){
-                JButton jbAdvance = new JButton(i);
-                jbAdvance.addActionListener(this);
-                buttons.add(jbAdvance);                
+                addButton(i);
             }
-            root = IntervalUtilities.randomRoot();
-            currentTriad = IntervalUtilities.randomTriad();
-            IntervalUtilities.playTriad(root, currentTriad);
+            selectNewRootAndTriadThenPlay();
         }
 
         try {
@@ -98,35 +93,66 @@ public class MainView extends JFrame implements ActionListener, MouseListener {
         f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         f.setVisible(true);
     }
+    
+    private void addButton(String buttonName) {
+        JButton jbAdvance = new JButton(buttonName);
+        jbAdvance.addActionListener(this);
+        buttons.add(jbAdvance);
+    }
 
     public void actionPerformed(java.awt.event.ActionEvent e) {
         if(e.getActionCommand().equals("quit")){
             System.exit(0);
         }else if(e.getActionCommand().equals("replay")||
                 e.getActionCommand().equals("play")){
-            if(id==0||id==1){ //harmonic or basic interval
+            if(isInterval){ //harmonic or melodic interval
                 IntervalUtilities.playInterval(root, currentInterval, id);
             }else{
                 IntervalUtilities.playTriad(root, currentTriad);
             }
         }else if(e.getActionCommand().equals(currentInterval)||
                 e.getActionCommand().equals(currentTriad)){
-            if(id == 0||id == 1){
-                JOptionPane.showMessageDialog(null, "Correct\n" +
-                        currentInterval + "\n" +
-                        IntervalUtilities.getNoteName(root) + " -> " + 
-                        getNoteName(root + 1 + randomInt));
-                getInterval();
+            if(isInterval){
+                displaySuccessMessageForInterval();
+                selectNewRootAndIntervalThenPlay();
             }else{
-                JOptionPane.showMessageDialog(null, "Correct\n" +
-                        getNoteName(root) + " " + triads[randomInt]);
-                getRandomTriad();
+                displaySuccessMessageForTriad();
+                selectNewRootAndTriadThenPlay();
             }
 
         }else{
-            JOptionPane.showMessageDialog(null, "Try Again");
+            displayFailureMessage();
         }
     }
+    
+    private void displayFailureMessage(){
+        JOptionPane.showMessageDialog(null, "Try Again");
+    }
+    
+    private void displaySuccessMessageForInterval() {
+        JOptionPane.showMessageDialog(null, "Correct\n"
+                + currentInterval + "\n"
+                + IntervalUtilities.getNoteName(root) + " -> "
+                + IntervalUtilities.findUpperNoteGivenRootAndInterval(root, currentInterval));
+    }
+    
+    private void displaySuccessMessageForTriad() {
+        JOptionPane.showMessageDialog(null, "Correct\n"
+                + IntervalUtilities.getNoteName(root) + " " + currentTriad);
+    }
+    
+    private void selectNewRootAndIntervalThenPlay(){
+        root = IntervalUtilities.randomRoot();
+        currentInterval = IntervalUtilities.randomInterval();
+        IntervalUtilities.playInterval(root, currentInterval, id);
+    }
+    
+    private void selectNewRootAndTriadThenPlay(){
+        root = IntervalUtilities.randomRoot();
+        currentTriad = IntervalUtilities.randomTriad();
+        IntervalUtilities.playTriad(root, currentTriad);
+    }
+    
     public void mouseClicked(MouseEvent e) {
         //do nothing
     }
@@ -146,5 +172,4 @@ public class MainView extends JFrame implements ActionListener, MouseListener {
     public void mouseExited(MouseEvent e) {
         //do nothing
     }
-
 }

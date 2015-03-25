@@ -1,6 +1,11 @@
 
 import java.util.Arrays;
 import java.util.Random;
+import javax.sound.midi.Instrument;
+import javax.sound.midi.MidiChannel;
+import javax.sound.midi.MidiSystem;
+import javax.sound.midi.MidiUnavailableException;
+import javax.sound.midi.Synthesizer;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -19,15 +24,17 @@ public class IntervalUtilities {
 
     public static final String[] triads = {"major (135)", "minor (1b35)", 
         "augmented (13#5)", "diminished (1b3b5)", "sus 4 (145)"};
+    
     private static final int FORCE = 500; //Striking force of the midi piano
     
-    static Random rand = new Random();
+    static private final Random rand = new Random();
+    private static MidiChannel[] mc;
+    private static Synthesizer synth;
     
     /**
      * Calculates a random root from one octave below to one above middle c.
      */
     public static int randomRoot(){
-        //randomize root
         if(rand.nextInt(2)==0){
             return 60 + rand.nextInt(12);
         }else{
@@ -118,27 +125,13 @@ public class IntervalUtilities {
         }
     }
     
-    public void findAndPlayRandomInterval(){
-        int root = randomRoot();
-        int randomInt = rand.nextInt(12);
-        String randomInterval = intervals[randomInt];
-        mc[5].noteOn(root, FORCE);
-        if(id == 0){
-            try {
-                Thread.sleep(1000);
-            } catch(InterruptedException ex) {
-                Thread.currentThread().interrupt();
-            }
-        }
-        mc[5].noteOn(root + 1 + randomInt, FORCE);
-    }
-    
     /**
      * Only plays an interval.
      */
     public static void playInterval(int root, String interval, int id){
+        makeMC();
         mc[5].noteOn(root, FORCE);
-        if(id == 0){ waitGivenTime(1000);}
+        if(id == 0){ waitGivenTime(1000); }
         int selectedInterval = Arrays.asList(intervals).indexOf(interval);
         mc[5].noteOn(root + 1 + selectedInterval, FORCE);
     }
@@ -156,6 +149,7 @@ public class IntervalUtilities {
     }
         
     public static void playSeventh(int root){
+        makeMC();
         mc[5].noteOn(root, FORCE);
         mc[5].noteOn(root + 4, FORCE);
         mc[5].noteOn(root + 7, FORCE);
@@ -166,6 +160,7 @@ public class IntervalUtilities {
      * Finds and plays a random triad.
      */
     private void getRandomTriad(){
+        makeMC();
         int root = randomRoot();
         int randomInt = rand.nextInt(5);
         String randomTriad = triads[randomInt];
@@ -198,6 +193,7 @@ public class IntervalUtilities {
      * @param input name of the triad to be played
      */
     public static void playTriad(int root, String input){
+        makeMC();
         switch(input){
             case("major (135)")         :   mc[5].noteOn(root, FORCE);
                                             mc[5].noteOn(root + 4, FORCE);
@@ -222,4 +218,19 @@ public class IntervalUtilities {
         }  
     }
     
+    private static void makeMC(){
+        try {
+            unprotectedMakeMC();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+    private static void unprotectedMakeMC() throws MidiUnavailableException{
+        synth = MidiSystem.getSynthesizer();
+        synth.open();
+        mc = synth.getChannels();
+        Instrument[] instr = synth.getDefaultSoundbank().getInstruments();
+        synth.loadInstrument(instr[0]);
+    }
 }
